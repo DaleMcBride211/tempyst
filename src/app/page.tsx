@@ -1,12 +1,28 @@
-import Image from "next/image";
+'use server'
 
-export default function Home() {
+import Header from '@/components/header';
+import Mainpage from '@/components/mainPage';
+import { auth } from "@/auth";
+
+
+
+
+export default async function Home() {
+  const session = await auth();
+
+  if (session?.user) {
+    return (
+    <div>
+      <Header />
+      <Mainpage />
+    </div>
+    )
+  }
+  
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image src='/tempystlogo.png' alt='logo' width={150} height={150}></Image>
-       homepage
-      </main>
+    <div className="">
+      <Header />
+      <p>no user</p>
     </div>
   );
 }
