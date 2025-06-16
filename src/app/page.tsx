@@ -2,6 +2,7 @@
 
 import Header from '@/components/header';
 import Mainpage from '@/components/mainPage';
+import NoUserMainpage from '@/components/nousermainpage'
 import { auth } from "@/auth";
 
 
@@ -22,7 +23,7 @@ export default async function Home() {
   return (
     <div className="">
       <Header />
-      <p>no user</p>
+      <NoUserMainpage />
     </div>
   );
 }

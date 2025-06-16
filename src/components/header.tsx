@@ -4,7 +4,7 @@ import SignInButton from '@/components/signInButton'
 import SignOutButton from '@/components/signOutButton'
 import { auth } from "@/auth";
 import Image from "next/image";
-import { MapPin, Search } from 'lucide-react'; // Example: using Lucide icons
+ // Example: using Lucide icons
 
 async function Header() { 
   const session = await auth();
@@ -30,21 +30,7 @@ async function Header() {
         
       </div>
 
-      {/* Middle: Location and Search (Example) */}
-      <div className="flex-grow flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
-        <div className="flex items-center">
-          <MapPin size={20} className="mr-2" />
-          <span className="text-lg font-medium">Current Location</span> {/* Replace with dynamic location */}
-        </div>
-        <div className="relative w-full max-w-xs">
-          <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="search"
-            placeholder="Search city..."
-            className="w-full pl-10 pr-3 py-2 rounded-md text-gray-900 bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-300"
-          />
-        </div>
-      </div>
+      
 
       {/* Right: User Auth */}
       <div className="flex items-center gap-3">
