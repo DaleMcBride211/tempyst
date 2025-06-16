@@ -233,9 +233,17 @@ function MainPage() {
                 setSelectedDay(result.forecast.forecastday[0]);
             }
             console.log("Data fetched successfully for " + location + ":", result);
-        } catch (e: any) {
-            console.error("Failed to fetch data:", e);
-            setError(e.message || "An unknown error occurred while fetching weather data.");
+        } catch (e) { // e is implicitly 'unknown'
+            if (e instanceof Error) {
+                console.error("Failed to fetch data:", e);
+                setError(e.message || "An unknown error occurred while fetching weather data.");
+            } else if (typeof e === 'string') {
+                console.error("Failed to fetch data:", e);
+                setError(e);
+            } else {
+                console.error("Failed to fetch data:", e);
+                setError("An unknown error occurred while fetching weather data.");
+            }
         } finally {
             setLoading(false);
         }
