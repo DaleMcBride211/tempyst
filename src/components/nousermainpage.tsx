@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, AlertTriangle, Thermometer } from 'lucide-react';
+import SignInButton from '@/components/signInButton'
 
 function WeatherAppLandingPage() {
   return (
@@ -15,13 +16,7 @@ function WeatherAppLandingPage() {
           Get real-time weather data, severe weather alerts, and personalized forecasts. Plan your day with confidence, no matter the weather.
         </p>
         <div className="mt-8 flex justify-center gap-4">
-          <Button size="lg" asChild>
-            {/* You might want this to link to a page where they can immediately search for a city */}
-            <a href="/forecast">Check Your Local Forecast</a>
-          </Button>
-          <Button size="lg" variant="outline" asChild>
-            <a href="/login">Login</a>
-          </Button>
+          <SignInButton />
         </div>
       </section>
 
@@ -72,12 +67,10 @@ function WeatherAppLandingPage() {
       <section className="bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 py-16 text-center">
           <h2 className="text-3xl font-bold">Never Get Caught in the Rain</h2>
-          <p className="mt-2">
+          <p className="mt-2 mb-2">
             Create a free account to unlock personalized alerts and save your favorite cities.
           </p>
-          <Button variant="secondary" size="lg" className="mt-6" asChild>
-            <a href="/signup">Sign Up for Free</a>
-          </Button>
+          <SignInButton />
         </div>
       </section>
     </div>
