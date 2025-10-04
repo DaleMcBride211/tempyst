@@ -1,17 +1,13 @@
-// src/components/signOutButton.tsx
+
 'use client'
 
 import React from 'react'
 import { Button } from "@/components/ui/button"
-// Import the client-side signOut from your auth library
-import { signOut as clientSignOut } from "next-auth/react"; // Adjust the import based on your auth library
+import { signOut as clientSignOut } from "next-auth/react"; 
 
-function SignOutButton() { // Component names should typically be PascalCase
+function SignOutButton() {
   const handleSignOut = async () => {
-    // Call the client-side signOut function directly
     await clientSignOut({ redirectTo: "/" });
-    // You generally wouldn't call your server action `logout()` here
-    // if it only contains the client-side signOut.
   };
 
   return (

@@ -4,7 +4,6 @@ import SignInButton from '@/components/signInButton'
 import SignOutButton from '@/components/signOutButton'
 import { auth } from "@/auth";
 import Image from "next/image";
- // Example: using Lucide icons
 
 async function Header() { 
   const session = await auth();
@@ -19,25 +18,22 @@ async function Header() {
       <div className="flex items-center">
         
         <Image
-          src="/tempystlogo.png" // Assuming it's in the public folder
+          src="/tempystlogo.png" 
           alt="Tempyst Logo"
-          width={60} // Adjust as needed
-          height={60} // Adjust as needed
+          width={60} 
+          height={60} 
           className="mr-3 rounded-[50%]"
-           // Add some margin if next to text or other elements
+           
         />
         <p className="text-3xl font-bold">Tempyst</p>
         
       </div>
 
-      
-
-      {/* Right: User Auth */}
       <div className="flex items-center gap-3">
         {session?.user ? (
           <>
-            <p className="text-md hidden sm:block"> {/* Hide on small screens if too crowded */}
-              Welcome, {session.user.name?.split(' ')[0]} {/* Show first name */}
+            <p className="text-md hidden sm:block"> 
+              Welcome, {session.user.name?.split(' ')[0]} 
             </p>
             {session.user.image && (
               <Image

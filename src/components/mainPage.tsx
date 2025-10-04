@@ -1,8 +1,8 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react';
 
-// --- Shadcn/ui Imports ---
-// Adjust the path according to your project structure
+// Importing UI components from a library, likely Shadcn UI based on naming conventions.
+// These components provide a consistent and accessible design system.
 import {
     Card,
     CardContent,
@@ -18,10 +18,13 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
-} from "@/components/ui/carousel"
-import { MapPin, Search } from 'lucide-react';
+} from "@/components/ui/carousel";
+import { MapPin, Search } from 'lucide-react'; // Icons from the Lucide library
 
 // --- Type Definitions ---
+// Interfaces define the shape of the data objects fetched from the weather API.
+// This improves type safety and code readability in a TypeScript project.
+
 interface LocationData {
     name: string;
     region: string;
@@ -29,11 +32,10 @@ interface LocationData {
     lat: number;
     lon: number;
     tz_id: string;
-    localtime_epoch?: number; // epoch time
-    localtime?: string; // Formatted local time string e.g., "2024-05-31 10:30"
+    localtime_epoch?: number;
+    localtime?: string;
 }
 
-// Added a new interface for the search API suggestions
 interface LocationSuggestion {
     id: number;
     name: string;
@@ -46,13 +48,13 @@ interface LocationSuggestion {
 
 interface CurrentWeatherData {
     last_updated_epoch: number;
-    last_updated: string; // Formatted last updated string
+    last_updated: string;
     temp_c: number;
     temp_f: number;
     is_day: number;
     condition: {
         text: string;
-        icon: string; // URL, might be protocol-relative (e.g., //cdn.weatherapi.com/...)
+        icon: string;
         code: number;
     };
     wind_mph: number;
@@ -81,93 +83,84 @@ interface CurrentWeatherData {
 }
 
 interface WeatherCondition {
-    text: string;         // Weather condition text, e.g., "Sunny", "Clear "
-    icon: string;         // URL to the weather icon
-    code: number;         // Weather condition unique code
+    text: string;
+    icon: string;
+    code: number;
 }
 
 interface AstroData {
-    sunrise: string;          // Sunrise time, e.g., "05:03 AM"
-    sunset: string;           // Sunset time, e.g., "08:52 PM"
-    moonrise: string;         // Moonrise time, e.g., "02:05 AM"
-    moonset: string;          // Moonset time, e.g., "10:39 AM"
-    moon_phase: string;       // Moon phase, e.g., "Waning Gibbous"
-    moon_illumination: number;  // Moon illumination percentage, e.g., 66
-    is_moon_up: number;       // 1 if moon is up, 0 if not
-    is_sun_up: number;        // 1 if sun is up, 0 if not
+    sunrise: string;
+    sunset: string;
+    moonrise: string;
+    moonset: string;
+    moon_phase: string;
+    moon_illumination: number;
+    is_moon_up: number;
+    is_sun_up: number;
 }
 
-/**
- * Represents the daily weather forecast data.
- */
 interface DayData {
-    maxtemp_c: number;        // Maximum temperature in Celsius
-    maxtemp_f: number;        // Maximum temperature in Fahrenheit
-    mintemp_c: number;        // Minimum temperature in Celsius
-    mintemp_f: number;        // Minimum temperature in Fahrenheit
-    avgtemp_c: number;        // Average temperature in Celsius
-    avgtemp_f: number;        // Average temperature in Fahrenheit
-    maxwind_mph: number;      // Maximum wind speed in miles per hour
-    maxwind_kph: number;      // Maximum wind speed in kilometers per hour
-    totalprecip_mm: number;   // Total precipitation in millimeters
-    totalprecip_in: number;   // Total precipitation in inches
-    totalsnow_cm: number;     // Total snowfall in centimeters
-    avgvis_km: number;        // Average visibility in kilometers
-    avgvis_miles: number;     // Average visibility in miles
-    avghumidity: number;      // Average humidity as a percentage
-    daily_will_it_rain: number; // 1 if there is a chance of rain, 0 if not
-    daily_chance_of_rain: number; // Chance of rain as a percentage
-    daily_will_it_snow: number; // 1 if there is a chance of snow, 0 if not
-    daily_chance_of_snow: number; // Chance of snow as a percentage
-    condition: WeatherCondition;  // Weather condition details
-    uv: number;               // UV index
+    maxtemp_c: number;
+    maxtemp_f: number;
+    mintemp_c: number;
+    mintemp_f: number;
+    avgtemp_c: number;
+    avgtemp_f: number;
+    maxwind_mph: number;
+    maxwind_kph: number;
+    totalprecip_mm: number;
+    totalprecip_in: number;
+    totalsnow_cm: number;
+    avgvis_km: number;
+    avgvis_miles: number;
+    avghumidity: number;
+    daily_will_it_rain: number;
+    daily_chance_of_rain: number;
+    daily_will_it_snow: number;
+    daily_chance_of_snow: number;
+    condition: WeatherCondition;
+    uv: number;
 }
 
-/**
- * Represents the hourly weather forecast data.
- */
 interface HourData {
-    time_epoch: number;   // Epoch time for the hour
-    time: string;         // Date and time, e.g., "2025-05-19 00:00"
-    temp_c: number;       // Temperature in Celsius
-    temp_f: number;       // Temperature in Fahrenheit
-    is_day: number;       // 1 if it is day, 0 if it is night
-    condition: WeatherCondition; // Weather condition details
-    wind_mph: number;     // Wind speed in miles per hour
-    wind_kph: number;     // Wind speed in kilometers per hour
-    wind_degree: number;  // Wind direction in degrees
-    wind_dir: string;     // Wind direction as a compass point, e.g., "ENE"
-    pressure_mb: number;  // Pressure in millibars
-    pressure_in: number;  // Pressure in inches
-    precip_mm: number;    // Precipitation in millimeters
-    precip_in: number;    // Precipitation in inches
-    snow_cm: number;      // Snowfall in centimeters
-    humidity: number;     // Humidity as a percentage
-    cloud: number;        // Cloud cover as a percentage
-    feelslike_c: number;  // Feels like temperature in Celsius
-    feelslike_f: number;  // Feels like temperature in Fahrenheit
-    windchill_c: number;  // Windchill temperature in Celsius
-    windchill_f: number;  // Windchill temperature in Fahrenheit
-    heatindex_c: number;  // Heat index in Celsius
-    heatindex_f: number;  // Heat index in Fahrenheit
-    dewpoint_c: number;   // Dew point in Celsius
-    dewpoint_f: number;   // Dew point in Fahrenheit
-    will_it_rain: number; // 1 if there is a chance of rain, 0 if not
-    chance_of_rain: number; // Chance of rain as a percentage
-    will_it_snow: number; // 1 if there is a chance of snow, 0 if not
-    chance_of_snow: number; // Chance of snow as a percentage
-    vis_km: number;       // Visibility in kilometers
-    vis_miles: number;    // Visibility in miles
-    gust_mph: number;     // Wind gust in miles per hour
-    gust_kph: number;     // Wind gust in kilometers per hour
-    uv: number;           // UV index
-    short_rad: number;    // Shortwave radiation (available in history/forecast API)
-    diff_rad: number;     // Diffuse radiation (available in history/forecast API)
+    time_epoch: number;
+    time: string;
+    temp_c: number;
+    temp_f: number;
+    is_day: number;
+    condition: WeatherCondition;
+    wind_mph: number;
+    wind_kph: number;
+    wind_degree: number;
+    wind_dir: string;
+    pressure_mb: number;
+    pressure_in: number;
+    precip_mm: number;
+    precip_in: number;
+    snow_cm: number;
+    humidity: number;
+    cloud: number;
+    feelslike_c: number;
+    feelslike_f: number;
+    windchill_c: number;
+    windchill_f: number;
+    heatindex_c: number;
+    heatindex_f: number;
+    dewpoint_c: number;
+    dewpoint_f: number;
+    will_it_rain: number;
+    chance_of_rain: number;
+    will_it_snow: number;
+    chance_of_snow: number;
+    vis_km: number;
+    vis_miles: number;
+    gust_mph: number;
+    gust_kph: number;
+    uv: number;
+    short_rad: number;
+    diff_rad: number;
 }
 
-/**
- * Represents the forecast for a single day.
- */
 interface ForecastDay {
     date: string;
     date_epoch: number;
@@ -180,19 +173,30 @@ interface WeatherApiResponse {
     location: LocationData;
     current?: CurrentWeatherData;
     forecast: {
-        forecastday: ForecastDay[]; // contains the 'forecastday' array
+        forecastday: ForecastDay[];
     };
 }
 
-// --- Helper Functions for UV Index ---
+// --- Helper Functions ---
+
+/**
+ * Determines the Tailwind CSS classes for a UV index badge based on the UV value.
+ * @param {number} uv - The UV index.
+ * @returns {string} Tailwind CSS class string.
+ */
 const getUVClasses = (uv: number): string => {
-    if (uv <= 2) return "bg-[#4A90E2] text-white"; // Low - Logo Secondary Blue (Light Blue)
-    if (uv <= 5) return "bg-[#F5A623] text-black"; // Moderate - Logo Accent Yellow
-    if (uv <= 7) return "bg-orange-500 text-white"; // High - Orange
-    if (uv <= 10) return "bg-red-600 text-white";   // Very High - Red
-    return "bg-purple-700 text-white"; // Extreme - Purple
+    if (uv <= 2) return "bg-[#4A90E2] text-white"; // Low
+    if (uv <= 5) return "bg-[#F5A623] text-black"; // Moderate
+    if (uv <= 7) return "bg-orange-500 text-white"; // High
+    if (uv <= 10) return "bg-red-600 text-white"; // Very High
+    return "bg-purple-700 text-white"; // Extreme
 };
 
+/**
+ * Returns a descriptive string for a given UV index.
+ * @param {number} uv - The UV index.
+ * @returns {string} The UV description (e.g., "Low", "Moderate").
+ */
 const getUVDescription = (uv: number): string => {
     if (uv <= 2) return "Low";
     if (uv <= 5) return "Moderate";
@@ -203,14 +207,24 @@ const getUVDescription = (uv: number): string => {
 
 
 function MainPage() {
-    const [data, setData] = useState<WeatherApiResponse | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedDay, setSelectedDay] = useState<ForecastDay | null>(null);
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-    const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+    // --- State Hooks ---
+    const [data, setData] = useState<WeatherApiResponse | null>(null); // Stores the main weather data
+    const [loading, setLoading] = useState<boolean>(true); // Manages the loading state
+    const [error, setError] = useState<string | null>(null); // Stores any error messages
+    const [selectedDay, setSelectedDay] = useState<ForecastDay | null>(null); // Tracks the currently selected day in the forecast
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY; // Retrieves API key from environment variables
+    const [query, setQuery] = useState(''); // Stores the user's search query for locations
+    const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]); // Stores location suggestions from the API
 
+    // --- Data Fetching Logic ---
+
+    /**
+     * Fetches weather data for a given location.
+     * This function is wrapped in useCallback to prevent unnecessary re-creations,
+     * which is good practice for functions passed as props to child components or
+     * used in useEffect dependencies.
+     * @param {string} location - The location query (city name or "lat,lon").
+     */
     const fetchWeatherData = useCallback(async (location: string) => {
         if (!apiKey) {
             console.error("API key is missing.");
@@ -222,6 +236,7 @@ function MainPage() {
         setLoading(true);
         setError(null);
         try {
+            // Fetching weather data from the WeatherAPI forecast endpoint.
             const res = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&days=3&aqi=no&alerts=no`);
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
@@ -229,11 +244,13 @@ function MainPage() {
             }
             const result: WeatherApiResponse = await res.json();
             setData(result);
+            // Automatically select the first day's forecast to display by default.
             if (result.forecast && result.forecast.forecastday.length > 0) {
                 setSelectedDay(result.forecast.forecastday[0]);
             }
             console.log("Data fetched successfully for " + location + ":", result);
-        } catch (e) { // e is implicitly 'unknown'
+        } catch (e) {
+            // Graceful error handling for fetch failures.
             if (e instanceof Error) {
                 console.error("Failed to fetch data:", e);
                 setError(e.message || "An unknown error occurred while fetching weather data.");
@@ -249,37 +266,42 @@ function MainPage() {
         }
     }, [apiKey]);
 
-    
+    // --- Effects ---
+
+    /**
+     * This effect runs once on component mount to get the user's current location
+     * using the Geolocation API.
+     * If successful, it fetches weather data for the current coordinates.
+     * If it fails (e.g., user denies permission or API is not supported), it falls
+     * back to fetching weather for a default location ("New York").
+     */
     useEffect(() => {
-        
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                // Success Callback: User allows location access
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    // Use coordinates to fetch weather data. The WeatherAPI accepts "lat,lon" as a valid query.
                     fetchWeatherData(`${latitude},${longitude}`);
                 },
-                // Error Callback: User denies or an error occurs
                 (err) => {
                     console.warn(`Geolocation error (${err.code}): ${err.message}`);
-                    
-                    console.log("Falling back to default location 'new York'.");
+                    console.log("Falling back to default location 'New York'.");
                     fetchWeatherData('New York');
                 }
             );
         } else {
-            // Geolocation is not supported by this browser.
             console.warn("Geolocation is not supported by this browser. Falling back to default 'New York'.");
             fetchWeatherData('New York');
         }
     }, [fetchWeatherData]);
 
-
-    
+    /**
+     * This effect handles fetching location suggestions as the user types in the search bar.
+     * It uses a debounce pattern (setTimeout) to delay the API call, which prevents
+     * excessive requests for every keystroke.
+     */
     useEffect(() => {
         if (query.trim().length < 2) {
-            setSuggestions([]);
+            setSuggestions([]); // Clear suggestions if the query is too short
             return;
         }
 
@@ -302,19 +324,27 @@ function MainPage() {
             fetchSuggestions();
         }, 500); // 500ms debounce delay
 
+        // Cleanup function to clear the timeout if the component unmounts
+        // or if the query changes before the timeout fires.
         return () => {
             clearTimeout(handler);
         };
     }, [query, apiKey]);
 
-    
+    /**
+     * Handles the click event for a location suggestion.
+     * It clears the search input and suggestions, then fetches weather data for the selected location.
+     * @param {string} locationName - The name of the location to fetch weather for.
+     */
     const handleSuggestionClick = (locationName: string) => {
-        setQuery(''); // Clear the input field
-        setSuggestions([]); // Hide suggestions
-        fetchWeatherData(locationName); // Fetch new weather data
+        setQuery('');
+        setSuggestions([]);
+        fetchWeatherData(locationName);
     };
 
+    // --- Conditional Rendering ---
 
+    // Display a loading message while data is being fetched.
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-sky-50 dark:bg-[#0D1A2B]">
@@ -323,6 +353,7 @@ function MainPage() {
         );
     }
 
+    // Display an error card if data fetching fails.
     if (error) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-sky-50 dark:bg-[#0D1A2B]">
@@ -341,6 +372,7 @@ function MainPage() {
         );
     }
 
+    // Display a "no data" message if the API returns no data.
     if (!data || !data.location || !data.current) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-sky-50 dark:bg-[#0D1A2B]">
@@ -349,14 +381,19 @@ function MainPage() {
         );
     }
 
+    // De-structure data for easier access.
     const { location, current, forecast } = data;
+    // Fix for the weather icon URL which sometimes starts with '//'.
     const weatherIconUrl = current.condition.icon.startsWith('//')
         ? `https:${current.condition.icon}`
         : current.condition.icon;
 
+    // --- Main Component Structure (JSX) ---
+
     return (
         <div className="container mx-auto p-4 flex flex-col min-h-screen bg-sky-50 dark:bg-[#0D1A2B] gap-2">
-           
+
+            {/* --- Location Search and Display --- */}
             <div className="flex-grow flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
                 <div className="flex items-center">
                     <MapPin size={20} className="mr-2" />
@@ -388,6 +425,8 @@ function MainPage() {
                     )}
                 </div>
             </div>
+
+            {/* --- Main Weather Card (Current Conditions) --- */}
             <div>
                 <Card className="w-full shadow-2xl rounded-xl overflow-hidden bg-white dark:bg-slate-800">
                     <CardHeader className="bg-[#1D3254] text-white text-center p-6">
@@ -406,7 +445,8 @@ function MainPage() {
 
                     <CardContent className="p-6">
                         <div className="flex flex-col lg:flex-row gap-6">
-                            {/* Main Weather Info Section (Left) */}
+
+                            {/* Current Weather Details (Icon, Temp) */}
                             <div className="lg:w-2/5 flex flex-col items-center text-center lg:items-start lg:text-left space-y-3 lg:border-r lg:border-slate-200 dark:lg:border-slate-700 lg:pr-6">
                                 <img
                                     src={weatherIconUrl}
@@ -420,7 +460,7 @@ function MainPage() {
                                 <p className="text-lg text-slate-500 dark:text-sky-300">Feels like {current.feelslike_f}°F</p>
                             </div>
 
-                            
+                            {/* Additional Weather Metrics */}
                             <div className="lg:w-3/5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-md">
                                 {[
                                     { label: "💨 Wind", value: `${current.wind_mph} mph (${current.wind_kph} kph) ${current.wind_dir}` },
@@ -455,6 +495,7 @@ function MainPage() {
                         </div>
                     </CardContent>
 
+                    {/* Card Footer for data attribution */}
                     <CardFooter className="text-center text-xs text-sky-600 dark:text-sky-300 p-4 bg-sky-100 dark:bg-[#102A43] border-t border-sky-200 dark:border-slate-700">
                         <div>
                             Weather data last updated: {current.last_updated}
@@ -465,6 +506,8 @@ function MainPage() {
                     </CardFooter>
                 </Card>
             </div>
+
+            {/* --- 3-Day Forecast Cards --- */}
             <div>
                 <Card>
                     <CardHeader className="flex flex-col justify-center items-center">
@@ -512,6 +555,8 @@ function MainPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* --- Hourly Forecast Carousel --- */}
             <div>
                 {selectedDay ? (
                     <Card className="mt-4">
