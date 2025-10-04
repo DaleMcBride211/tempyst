@@ -6,7 +6,8 @@ Tempyst is a web application that provides real-time weather data for any locati
 
 
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/Anm7OF6n8bk)
+[Live Website](https://tempyst.vercel.app/)
 
 ***
 
